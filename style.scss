@@ -1,0 +1,139 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+#main {
+  height: 100%;
+  width: 100%;
+  background-color: #0f0f0f;
+
+  #canvas {
+    height: 100%;
+    width: 100%;
+    background: #232121;
+    position: relative;
+
+    .newTriangle {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background-color: #424242;
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    }
+
+    .selectedTriangle{
+        outline: 2px solid rgb(91, 206, 255);
+    }
+
+    .newCircle {
+      position: absolute;
+      height: 100px;
+      width: 100px;
+      background-color: #424242;
+      border-radius: 50%;
+    }
+
+    .selectedCircle {
+      outline: 2px solid rgb(91, 206, 255);
+    }
+
+    .newRectangle {
+      position: absolute;
+      height: 100px;
+      width: 200px;
+      background-color: #424242;
+    }
+
+    .newRectangle:hover {
+      cursor: move;
+    }
+
+    .selected {
+      outline: 2px solid rgb(91, 206, 255);
+    }
+
+    .resize-handle {
+      width: 10px;
+      height: 10px;
+      background: white;
+      border: 1px solid black;
+      position: absolute;
+      right: -5px;
+      bottom: -5px;
+      cursor: se-resize;
+    }
+
+    .tl {
+      top: -5px;
+      left: -5px;
+      cursor: nw-resize;
+    }
+    .tr {
+      top: -5px;
+      right: -5px;
+      cursor: ne-resize;
+    }
+    .bl {
+      bottom: -5px;
+      left: -5px;
+      cursor: sw-resize;
+    }
+    .br {
+      bottom: -5px;
+      right: -5px;
+      cursor: se-resize;
+    }
+  }
+
+  #panel {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    background-color: #0f0f0f;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 10px;
+
+    .panel-options {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      button {
+        border: none;
+        padding: 8px;
+        background: #242424;
+        border-radius: 5px;
+        color: white;
+
+        i {
+          font-size: 1rem;
+        }
+      }
+
+      input {
+        border: none;
+        padding: 5px;
+        background: #242424;
+        border-radius: 5px;
+        color: white;
+        width: 33px;
+        height: 33px;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+    }
+  }
+}

@@ -1,0 +1,125 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+#main {
+  height: 100%;
+  width: 100%;
+  background-color: #0f0f0f;
+}
+#main #canvas {
+  height: 100%;
+  width: 100%;
+  background: #232121;
+  position: relative;
+}
+#main #canvas .newTriangle {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-color: #424242;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+#main #canvas .selectedTriangle {
+  outline: 2px solid rgb(91, 206, 255);
+}
+#main #canvas .newCircle {
+  position: absolute;
+  height: 100px;
+  width: 100px;
+  background-color: #424242;
+  border-radius: 50%;
+}
+#main #canvas .selectedCircle {
+  outline: 2px solid rgb(91, 206, 255);
+}
+#main #canvas .newRectangle {
+  position: absolute;
+  height: 100px;
+  width: 200px;
+  background-color: #424242;
+}
+#main #canvas .newRectangle:hover {
+  cursor: move;
+}
+#main #canvas .selected {
+  outline: 2px solid rgb(91, 206, 255);
+}
+#main #canvas .resize-handle {
+  width: 10px;
+  height: 10px;
+  background: white;
+  border: 1px solid black;
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  cursor: se-resize;
+}
+#main #canvas .tl {
+  top: -5px;
+  left: -5px;
+  cursor: nw-resize;
+}
+#main #canvas .tr {
+  top: -5px;
+  right: -5px;
+  cursor: ne-resize;
+}
+#main #canvas .bl {
+  bottom: -5px;
+  left: -5px;
+  cursor: sw-resize;
+}
+#main #canvas .br {
+  bottom: -5px;
+  right: -5px;
+  cursor: se-resize;
+}
+#main #panel {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto;
+  background-color: #0f0f0f;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 10px;
+}
+#main #panel .panel-options {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#main #panel .panel-options button {
+  border: none;
+  padding: 8px;
+  background: #242424;
+  border-radius: 5px;
+  color: white;
+}
+#main #panel .panel-options button i {
+  font-size: 1rem;
+}
+#main #panel .panel-options input {
+  border: none;
+  padding: 5px;
+  background: #242424;
+  border-radius: 5px;
+  color: white;
+  width: 33px;
+  height: 33px;
+  cursor: pointer;
+  -moz-appearance: none;
+       appearance: none;
+  -webkit-appearance: none;
+}/*# sourceMappingURL=style.css.map */
