@@ -5,12 +5,147 @@ let selectedBox = null;
 
 let colorPicker = document.querySelector('#colorPicker')
 
+function deselectAllLayers() {
+    document.querySelectorAll(".layer").forEach(l => {
+        l.classList.remove("active");
+    });
+}
+
+function selectLayerByShapeId(id) {
+    deselectAllLayers();
+    const layer = document.querySelector(`.layer[data-shape-id="${id}"]`);
+    if (layer) layer.classList.add("active");
+}
+
+
+function generateID() {
+    return "el_" + Date.now() + "_" + Math.floor(Math.random() * 100);
+}
+
+
+function appendLayers(iconClass, shapeName, shapeId) {
+    const layer = document.createElement("div");
+    layer.className = "layer";
+    layer.dataset.shapeId = shapeId;   // shape ka ID yahan store
+
+    const layerWrapper = document.createElement("div");
+    layerWrapper.className = "layerWrapper";
+
+    // icon
+    const iconSpan = document.createElement("span");
+    const icon = document.createElement("i");
+    icon.className = iconClass;
+    iconSpan.appendChild(icon);
+
+    // text
+    const textSpan = document.createElement("span");
+    textSpan.textContent = shapeName;
+
+    layerWrapper.appendChild(iconSpan);
+    layerWrapper.appendChild(textSpan);
+
+    // hide
+    const hideSpan = document.createElement("span");
+    hideSpan.id = "hide";
+    const hideIcon = document.createElement("i");
+    hideIcon.className = "ri-eye-line";
+    hideSpan.appendChild(hideIcon);
+
+    // unhide
+    const unHideSpan = document.createElement("span");
+    unHideSpan.id = "unHide";
+    const unHideIcon = document.createElement("i");
+    unHideIcon.className = "ri-eye-off-line";
+    unHideSpan.appendChild(unHideIcon);
+
+    // by default unhide hidden rahe
+    unHideSpan.style.display = "none";
+
+    // structure
+    layer.appendChild(layerWrapper);
+    layer.appendChild(hideSpan);
+    layer.appendChild(unHideSpan);
+
+    document.querySelector(".layers").appendChild(layer);
+
+    /* ===================== LAYER CLICK → SHAPE SELECT ===================== */
+    layer.addEventListener("click", (e) => {
+        e.stopPropagation();
+
+        const id = layer.dataset.shapeId;
+        const shape = document.querySelector(`[data-id="${id}"]`);
+        if (!shape) return;
+
+        // sab deselect
+        deselectBox();
+        deselectCircle();
+        deselectTriangle();
+        deselectAllLayers();
+
+        // shape ke type ke hisaab se select
+        if (shape.classList.contains("newRectangle")) {
+            selectBox(shape);
+        } 
+        else if (shape.classList.contains("newCircle")) {
+            selectCircle(shape);
+        } 
+        else if (shape.classList.contains("newTriangle")) {
+            selectTriangle(shape);
+        }
+
+        layer.classList.add("active");
+    });
+
+    /* ===================== HIDE ===================== */
+    hideSpan.addEventListener("click", (e) => {
+        e.stopPropagation();
+
+        const id = layer.dataset.shapeId;
+        const shape = document.querySelector(`[data-id="${id}"]`);
+
+        if (shape) {
+            shape.style.display = "none";
+            hideSpan.style.display = "none";
+            unHideSpan.style.display = "flex";
+        }
+    });
+
+    /* ===================== UNHIDE ===================== */
+    unHideSpan.addEventListener("click", (e) => {
+        e.stopPropagation();
+
+        const id = layer.dataset.shapeId;
+        const shape = document.querySelector(`[data-id="${id}"]`);
+
+        if (shape) {
+            shape.style.display = "block";
+            unHideSpan.style.display = "none";
+            hideSpan.style.display = "flex";
+        }
+    });
+}
+
+function deleteShapeAndLayer(shape) {
+    const id = shape.dataset.id;
+
+    // layer remove
+    const layer = document.querySelector(`.layer[data-shape-id="${id}"]`);
+    if (layer) layer.remove();
+
+    // shape remove
+    shape.remove();
+}
+
+
 
 // making rectangle
 makeRectangle.addEventListener('click', function () {
 
     let newRectangle = document.createElement('div')
     newRectangle.classList.add("newRectangle")
+
+    let id = generateID();
+    newRectangle.dataset.id = id;
 
 
     // rectangle original size 
@@ -33,6 +168,8 @@ makeRectangle.addEventListener('click', function () {
     newRectangle.style.top = randomTop + "px";
 
     canvas.appendChild(newRectangle)
+
+    appendLayers("ri-rectangle-line", "Rectangle", id)
 
 
     makeSelectable(newRectangle)
@@ -62,6 +199,8 @@ function selectBox(box) {
 
     // colorPicker.style.display = "flex"
     addResizeToSelectedBox();
+
+    selectLayerByShapeId(box.dataset.id);
 }
 
 // deselecting rectangle
@@ -213,8 +352,6 @@ function addResizeToSelectedBox() {
 
 // deleting elements
 document.addEventListener('keydown', (e) => {
-
-
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
     if (e.key === "Delete") {
@@ -223,11 +360,12 @@ document.addEventListener('keydown', (e) => {
 
         document.querySelectorAll(".resize-handle").forEach(h => h.remove());
 
-        selectedBox.remove();
-
+        deleteShapeAndLayer(selectedBox);
         selectedBox = null;
+        deselectAllLayers();
     }
 });
+
 
 
 // making circle 
@@ -235,10 +373,13 @@ document.addEventListener('keydown', (e) => {
 let makeCircle = document.querySelector('#makeCircle')
 let selectedCircle = null;
 
-makeCircle.addEventListener('click',()=>{
+makeCircle.addEventListener('click', () => {
 
     let newCircle = document.createElement('div')
     newCircle.classList.add("newCircle")
+
+    let id = generateID();
+    newCircle.dataset.id = id;
 
     // circle original size
     const circleWidth = 100;
@@ -250,7 +391,7 @@ makeCircle.addEventListener('click',()=>{
 
     // random top/left
     const randomTop = Math.random() * (canvasHeight - circleHeight);
-    const randomLeft = Math.random() * (canvasWidth - circleWidth); 
+    const randomLeft = Math.random() * (canvasWidth - circleWidth);
 
     // circle position
     newCircle.style.width = circleWidth + "px"
@@ -261,31 +402,35 @@ makeCircle.addEventListener('click',()=>{
 
     canvas.appendChild(newCircle)
 
+    appendLayers("ri-circle-line", "Circle", id)
+
     makeCircleSelect(newCircle)
 
     makeSelectedCircleDraggable()
 })
 
-function makeCircleSelect(circle){
-    circle.addEventListener('click',function(event){
+function makeCircleSelect(circle) {
+    circle.addEventListener('click', function (event) {
         event.stopPropagation()
         selectCircle(circle)
     })
 }
 
-function selectCircle(circle){
+function selectCircle(circle) {
 
-    if(selectedCircle && selectedCircle !== circle){
+    if (selectedCircle && selectedCircle !== circle) {
         selectedCircle.classList.remove('selectedCircle')
     }
     selectedCircle = circle
     circle.classList.add('selectedCircle')
 
     addResizeToSelectedCircle();
+
+    selectLayerByShapeId(circle.dataset.id);
 }
 
-function deselectCircle(){
-    if(!selectedCircle) return;
+function deselectCircle() {
+    if (!selectedCircle) return;
 
     selectedCircle.classList.remove('selectedCircle')
 
@@ -294,7 +439,7 @@ function deselectCircle(){
     selectedCircle = null;
 }
 
-canvas.addEventListener("click",function(){
+canvas.addEventListener("click", function () {
     deselectCircle()
 })
 
@@ -350,8 +495,8 @@ function makeSelectedCircleDraggable() {
     });
 }
 
-colorPicker.addEventListener('input',function(){
-    if(!selectedCircle) return
+colorPicker.addEventListener('input', function () {
+    if (!selectedCircle) return
 
     selectedCircle.style.backgroundColor = colorPicker.value
 })
@@ -420,16 +565,16 @@ document.addEventListener('keydown',(e)=>{
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
     if(e.key==="Delete"){
-
         if(!selectedCircle) return;
 
         document.querySelectorAll(".resize-handle").forEach(h => h.remove());
 
-        selectedCircle.remove();
-
+        deleteShapeAndLayer(selectedCircle);
         selectedCircle = null;
+        deselectAllLayers();
     }
-})
+});
+
 
 
 // making triangle 
@@ -437,10 +582,13 @@ document.addEventListener('keydown',(e)=>{
 let makeTriangle = document.querySelector('#makeTriangle')
 let selectedTriangle = null;
 
-makeTriangle.addEventListener('click',function(){
+makeTriangle.addEventListener('click', function () {
 
     let newTriangle = document.createElement('div')
     newTriangle.classList.add('newTriangle')
+
+    let id = generateID();
+    newTriangle.dataset.id = id;
 
     const triWidth = 100;
     const triHeight = 100;
@@ -455,9 +603,11 @@ makeTriangle.addEventListener('click',function(){
     newTriangle.style.height = triHeight + "px"
 
     newTriangle.style.left = randomLeft + "px"
-    newTriangle.style.top = randomTop +"px"
+    newTriangle.style.top = randomTop + "px"
 
     canvas.appendChild(newTriangle)
+
+    appendLayers("ri-triangle-line", "Triangle", id)
 
     makeTriangleSelect(newTriangle)
 
@@ -466,15 +616,15 @@ makeTriangle.addEventListener('click',function(){
 
 
 //selecting triangle
-function makeTriangleSelect(triangle){
-    triangle.addEventListener('click', function(event){
+function makeTriangleSelect(triangle) {
+    triangle.addEventListener('click', function (event) {
         event.stopPropagation();
         selectTriangle(triangle);
     });
 }
 
 
-function selectTriangle(triangle){
+function selectTriangle(triangle) {
 
     if (selectedTriangle && selectedTriangle !== triangle) {
         selectedTriangle.classList.remove('selectedTriangle');
@@ -484,10 +634,12 @@ function selectTriangle(triangle){
     triangle.classList.add('selectedTriangle');
 
     addResizeToSelectedTriangle();
+
+    selectLayerByShapeId(triangle.dataset.id);
 }
 
-function deselectTriangle(){
-    if(!selectedTriangle) return;
+function deselectTriangle() {
+    if (!selectedTriangle) return;
 
     selectedTriangle.classList.remove('selectedTriangle');
 
@@ -497,8 +649,9 @@ function deselectTriangle(){
 }
 
 
-canvas.addEventListener("click", function(){
+canvas.addEventListener("click", function () {
     deselectTriangle();
+    deselectAllLayers();
 });
 
 function makeSelectedTriangleDraggable() {
@@ -553,8 +706,8 @@ function makeSelectedTriangleDraggable() {
     });
 }
 
-colorPicker.addEventListener('input', function(){
-    if(!selectedTriangle) return;
+colorPicker.addEventListener('input', function () {
+    if (!selectedTriangle) return;
 
     selectedTriangle.style.backgroundColor = colorPicker.value;
 });
@@ -620,17 +773,17 @@ function addResizeToSelectedTriangle() {
 }
 
 
-document.addEventListener('keydown', (e) => {
+document.addEventListener('keydown',(e)=>{
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
-    if (e.key === "Delete") {
-
-        if (!selectedTriangle) return;
+    if(e.key==="Delete"){
+        if(!selectedTriangle) return;
 
         document.querySelectorAll(".resize-handle").forEach(h => h.remove());
 
-        selectedTriangle.remove();
-
+        deleteShapeAndLayer(selectedTriangle);
         selectedTriangle = null;
+        deselectAllLayers();
     }
 });
+

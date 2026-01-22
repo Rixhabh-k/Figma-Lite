@@ -14,12 +14,26 @@ body {
   height: 100%;
   width: 100%;
   background-color: #0f0f0f;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif;
+  display: flex;
 
   #canvas {
     height: 100%;
     width: 100%;
     background: #232121;
     position: relative;
+    overflow: hidden;
 
     .newTriangle {
       position: absolute;
@@ -29,8 +43,8 @@ body {
       clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
     }
 
-    .selectedTriangle{
-        outline: 2px solid rgb(91, 206, 255);
+    .selectedTriangle {
+      outline: 2px solid rgb(91, 206, 255);
     }
 
     .newCircle {
@@ -90,6 +104,64 @@ body {
       bottom: -5px;
       right: -5px;
       cursor: se-resize;
+    }
+  }
+
+  #propPanel {
+    width: 20%;
+    height: 100%;
+    background-color: #0e0e0e;
+  }
+
+  #layerPanel {
+    width: 20%;
+    height: 100%;
+    background-color: #0e0e0e;
+    padding: 10px;
+    overflow: hidden;
+
+    .layerPanelContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      h1 {
+        color: white;
+        font-weight: 600;
+        font-size: 1.5rem;
+      }
+
+      .layers {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        overflow: hidden;
+
+        .layer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          color: white;
+          background: #1a1a1a;
+          padding: 10px 8px;
+          border-radius: 5px;
+
+          #hide {
+            cursor: pointer;
+          }
+
+          #unHide {
+            display: none;
+            cursor: pointer;
+          }
+        }
+
+        .layer.active {
+          background: #2f2f2f;
+          border: 1px solid rgb(91, 206, 255);
+        }
+      }
     }
   }
 
