@@ -20,9 +20,19 @@ body {
 #main #canvas {
   height: 100%;
   width: 100%;
-  background: #232121;
+  background-image: url("./images/canvas.png");
+  background-size: cover;
   position: relative;
   overflow: hidden;
+}
+#main #canvas .canvasText {
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  white-space: nowrap;
+}
+#main #canvas .selectedText {
+  outline: 1px dashed #00f;
 }
 #main #canvas .newTriangle {
   position: absolute;
@@ -54,7 +64,7 @@ body {
   cursor: move;
 }
 #main #canvas .selected {
-  outline: 2px solid rgb(91, 206, 255);
+  outline: 2px dotted rgb(91, 206, 255);
 }
 #main #canvas .resize-handle {
   width: 10px;
@@ -90,6 +100,86 @@ body {
   width: 20%;
   height: 100%;
   background-color: #0e0e0e;
+  padding: 10px;
+  overflow: hidden;
+}
+#main #propPanel .propPanelContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+#main #propPanel .propPanelContainer h1 {
+  color: white;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+#main #propPanel .propPanelContainer .properties {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#main #propPanel .propPanelContainer .properties .props {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+#main #propPanel .propPanelContainer .properties .props p {
+  color: white;
+}
+#main #propPanel .propPanelContainer .properties .props input {
+  width: 100%;
+  border: none;
+  padding: 5px;
+  outline: none;
+  border: 1px solid white;
+  background: #383838;
+  color: white;
+}
+#main #propPanel .propPanelContainer .properties .props #colorPicker {
+  padding: 2px;
+}
+#main #propPanel .propPanelContainer .properties .shapeMove {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#main #propPanel .propPanelContainer .properties .shapeMove p {
+  color: white;
+}
+#main #propPanel .propPanelContainer .properties .shapeMove .centerButtons {
+  display: flex;
+  gap: 8px;
+}
+#main #propPanel .propPanelContainer .properties .shapeMove button {
+  width: 100%;
+  border: none;
+  padding: 8px;
+  background: #383838;
+  color: white;
+  cursor: pointer;
+}
+#main #propPanel .propPanelContainer .properties .rotateShape {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#main #propPanel .propPanelContainer .properties .rotateShape p {
+  color: white;
+}
+#main #propPanel .propPanelContainer .properties .rotateShape .rotateButtons {
+  width: 100%;
+  display: flex;
+  gap: 5px;
+}
+#main #propPanel .propPanelContainer .properties .rotateShape .rotateButtons button {
+  width: 100%;
+  border: none;
+  padding: 8px;
+  background: #383838;
+  color: white;
+  cursor: pointer;
 }
 #main #layerPanel {
   width: 20%;
@@ -97,6 +187,21 @@ body {
   background-color: #0e0e0e;
   padding: 10px;
   overflow: hidden;
+  position: relative;
+}
+#main #layerPanel .export {
+  position: absolute;
+  bottom: 3%;
+  display: flex;
+  gap: 5px;
+}
+#main #layerPanel .export button {
+  border: none;
+  padding: 5px 8px;
+  background: #000;
+  color: white;
+  cursor: pointer;
+  border-radius: 3px;
 }
 #main #layerPanel .layerPanelContainer {
   display: flex;
@@ -123,6 +228,9 @@ body {
   background: #1a1a1a;
   padding: 10px 8px;
   border-radius: 5px;
+}
+#main #layerPanel .layerPanelContainer .layers .layer .upDown-container span {
+  cursor: pointer;
 }
 #main #layerPanel .layerPanelContainer .layers .layer #hide {
   cursor: pointer;

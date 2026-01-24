@@ -31,9 +31,21 @@ body {
   #canvas {
     height: 100%;
     width: 100%;
-    background: #232121;
+    // background: #232121;
+    background-image: url("./images/canvas.png");
+    background-size: cover;
     position: relative;
     overflow: hidden;
+
+    .canvasText {
+    user-select: none;
+    white-space: nowrap;
+}
+
+.selectedText {
+    outline: 1px dashed #00f;
+}
+
 
     .newTriangle {
       position: absolute;
@@ -71,7 +83,7 @@ body {
     }
 
     .selected {
-      outline: 2px solid rgb(91, 206, 255);
+      outline: 2px dotted rgb(91, 206, 255);
     }
 
     .resize-handle {
@@ -111,6 +123,93 @@ body {
     width: 20%;
     height: 100%;
     background-color: #0e0e0e;
+    padding: 10px;
+    overflow: hidden;
+    .propPanelContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+
+      h1 {
+        color: white;
+        font-weight: 600;
+        font-size: 1.5rem;
+      }
+
+      .properties {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        .props {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          p {
+            color: white;
+          }
+          input {
+            width: 100%;
+            border: none;
+            padding: 5px;
+            outline: none;
+            border: 1px solid white;
+            background: #383838;
+            color: white;
+          }
+
+          #colorPicker{
+            padding: 2px;
+          }
+        }
+
+        .shapeMove {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+
+          p {
+            color: white;
+          }
+          .centerButtons {
+            display: flex;
+            gap: 8px;
+          }
+          button {
+            width: 100%;
+            border: none;
+            padding: 8px;
+            background: #383838;
+            color: white;
+            cursor: pointer;
+          }
+        }
+
+        .rotateShape {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          p {
+            color: white;
+          }
+          .rotateButtons {
+            width: 100%;
+            display: flex;
+            gap: 5px;
+
+            button {
+              width: 100%;
+              border: none;
+              padding: 8px;
+              background: #383838;
+              color: white;
+              cursor: pointer;
+            }
+          }
+        }
+      }
+    }
   }
 
   #layerPanel {
@@ -119,6 +218,22 @@ body {
     background-color: #0e0e0e;
     padding: 10px;
     overflow: hidden;
+    position: relative;
+    
+    .export{
+      position: absolute;
+      bottom: 3%;
+      display: flex;
+      gap: 5px;
+      button{
+        border: none;
+        padding: 5px 8px;
+        background: #000;
+        color: white;
+        cursor: pointer;
+        border-radius: 3px
+      }
+    }
 
     .layerPanelContainer {
       display: flex;
@@ -146,6 +261,12 @@ body {
           background: #1a1a1a;
           padding: 10px 8px;
           border-radius: 5px;
+
+          .upDown-container{
+            span{
+              cursor: pointer;
+            }
+          }
 
           #hide {
             cursor: pointer;

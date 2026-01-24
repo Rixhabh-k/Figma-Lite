@@ -1,9 +1,92 @@
 let makeRectangle = document.querySelector('#makeRectangle')
 let canvas = document.querySelector('#canvas')
 
+let canvasStore = [];
+
+
 let selectedBox = null;
 
 let colorPicker = document.querySelector('#colorPicker')
+
+let currentSelectedShape = null;
+
+let selectedText = null;
+
+function saveToLocal() {
+    localStorage.setItem("canvasData", JSON.stringify(canvasStore));
+}
+
+function loadFromLocal() {
+    const data = localStorage.getItem("canvasData");
+    if (data) {
+        canvasStore = JSON.parse(data);
+    }
+}
+
+function renderFromStore() {
+    canvas.innerHTML = "";
+    document.querySelector(".layers").innerHTML = "";
+
+    canvasStore.forEach(item => {
+        let el = document.createElement("div");
+        el.dataset.id = item.id;
+        el.dataset.rotate = item.rotation || 0;
+
+        el.style.position = "absolute";
+        el.style.left = item.position.x + "px";
+        el.style.top = item.position.y + "px";
+        el.style.zIndex = item.zIndex;
+
+        if (item.type === "rectangle") {
+            el.classList.add("newRectangle");
+            el.style.width = item.size.width + "px";
+            el.style.height = item.size.height + "px";
+            el.style.backgroundColor = item.styles.backgroundColor;
+            makeSelectable(el);
+            makeSelectedDraggable();
+            appendLayers("ri-rectangle-line", "Rectangle", item.id);
+        }
+
+        else if (item.type === "circle") {
+            el.classList.add("newCircle");
+            el.style.width = item.size.width + "px";
+            el.style.height = item.size.height + "px";
+            el.style.backgroundColor = item.styles.backgroundColor;
+            makeCircleSelect(el);
+            makeSelectedCircleDraggable();
+            appendLayers("ri-circle-line", "Circle", item.id);
+        }
+
+        else if (item.type === "triangle") {
+            el.classList.add("newTriangle");
+            el.style.width = item.size.width + "px";
+            el.style.height = item.size.height + "px";
+            el.style.backgroundColor = item.styles.backgroundColor;
+            makeTriangleSelect(el);
+            makeSelectedTriangleDraggable();
+            appendLayers("ri-triangle-line", "Triangle", item.id);
+        }
+
+        else if (item.type === "text") {
+            el.classList.add("canvasText");
+            el.textContent = item.styles.text;
+            el.style.color = item.styles.color;
+            el.style.fontSize = item.styles.fontSize;
+            makeTextSelectable(el);
+            makeSelectedTextDraggable();
+            appendLayers("ri-text", "Text", item.id);
+        }
+
+        el.style.transform = `rotate(${item.rotation}deg)`;
+
+        canvas.appendChild(el);
+    });
+}
+
+
+loadFromLocal()
+renderFromStore();
+
 
 function deselectAllLayers() {
     document.querySelectorAll(".layer").forEach(l => {
@@ -22,11 +105,67 @@ function generateID() {
     return "el_" + Date.now() + "_" + Math.floor(Math.random() * 100);
 }
 
+function getMaxZIndex() {
+    let elements = canvas.querySelectorAll("[data-id]");
+    let max = 0;
+
+    elements.forEach(el => {
+        let z = parseInt(el.style.zIndex) || 0;
+        if (z > max) max = z;
+    });
+
+    return max;
+}
+
+function addToStore(el, type) {
+    const obj = {
+        id: el.dataset.id,
+        type: type,
+        position: {
+            x: parseInt(el.style.left),
+            y: parseInt(el.style.top)
+        },
+        size: {
+            width: el.offsetWidth || null,
+            height: el.offsetHeight || null
+        },
+        rotation: el.dataset.rotate || 0,
+        zIndex: parseInt(el.style.zIndex) || 0,
+        styles: {
+            backgroundColor: el.style.backgroundColor || null,
+            color: el.style.color || null,
+            fontSize: el.style.fontSize || null,
+            text: el.textContent || null
+        }
+    };
+
+    canvasStore.push(obj);
+    saveToLocal();
+}
+
+
+function updateStore(id, newData) {
+    const index = canvasStore.findIndex(item => item.id === id);
+    if (index === -1) return;
+
+    canvasStore[index] = {
+        ...canvasStore[index],
+        ...newData
+    };
+
+    saveToLocal();
+
+    
+}
+
+
+
+
 
 function appendLayers(iconClass, shapeName, shapeId) {
     const layer = document.createElement("div");
     layer.className = "layer";
-    layer.dataset.shapeId = shapeId;   // shape ka ID yahan store
+    layer.dataset.shapeId = shapeId;
 
     const layerWrapper = document.createElement("div");
     layerWrapper.className = "layerWrapper";
@@ -44,6 +183,8 @@ function appendLayers(iconClass, shapeName, shapeId) {
     layerWrapper.appendChild(iconSpan);
     layerWrapper.appendChild(textSpan);
 
+
+
     // hide
     const hideSpan = document.createElement("span");
     hideSpan.id = "hide";
@@ -58,17 +199,16 @@ function appendLayers(iconClass, shapeName, shapeId) {
     unHideIcon.className = "ri-eye-off-line";
     unHideSpan.appendChild(unHideIcon);
 
-    // by default unhide hidden rahe
     unHideSpan.style.display = "none";
 
-    // structure
+    // structure 
     layer.appendChild(layerWrapper);
+
     layer.appendChild(hideSpan);
     layer.appendChild(unHideSpan);
 
     document.querySelector(".layers").appendChild(layer);
 
-    /* ===================== LAYER CLICK → SHAPE SELECT ===================== */
     layer.addEventListener("click", (e) => {
         e.stopPropagation();
 
@@ -76,27 +216,28 @@ function appendLayers(iconClass, shapeName, shapeId) {
         const shape = document.querySelector(`[data-id="${id}"]`);
         if (!shape) return;
 
-        // sab deselect
         deselectBox();
         deselectCircle();
         deselectTriangle();
         deselectAllLayers();
+        deselectText();
 
-        // shape ke type ke hisaab se select
         if (shape.classList.contains("newRectangle")) {
             selectBox(shape);
-        } 
+        }
         else if (shape.classList.contains("newCircle")) {
             selectCircle(shape);
-        } 
+        }
         else if (shape.classList.contains("newTriangle")) {
             selectTriangle(shape);
+        }
+        else if (shape.classList.contains("canvasText")) {
+            selectText(shape);
         }
 
         layer.classList.add("active");
     });
 
-    /* ===================== HIDE ===================== */
     hideSpan.addEventListener("click", (e) => {
         e.stopPropagation();
 
@@ -110,7 +251,6 @@ function appendLayers(iconClass, shapeName, shapeId) {
         }
     });
 
-    /* ===================== UNHIDE ===================== */
     unHideSpan.addEventListener("click", (e) => {
         e.stopPropagation();
 
@@ -124,6 +264,7 @@ function appendLayers(iconClass, shapeName, shapeId) {
         }
     });
 }
+
 
 function deleteShapeAndLayer(shape) {
     const id = shape.dataset.id;
@@ -167,6 +308,8 @@ makeRectangle.addEventListener('click', function () {
     newRectangle.style.left = randomLeft + "px";
     newRectangle.style.top = randomTop + "px";
 
+    newRectangle.style.zIndex = getMaxZIndex() + 1;
+
     canvas.appendChild(newRectangle)
 
     appendLayers("ri-rectangle-line", "Rectangle", id)
@@ -176,6 +319,7 @@ makeRectangle.addEventListener('click', function () {
 
     makeSelectedDraggable()
 
+    addToStore(newRectangle, "rectangle");
 
 })
 
@@ -194,6 +338,7 @@ function selectBox(box) {
     }
 
     selectedBox = box;
+    currentSelectedShape = box;
     box.classList.add("selected");
 
 
@@ -201,6 +346,8 @@ function selectBox(box) {
     addResizeToSelectedBox();
 
     selectLayerByShapeId(box.dataset.id);
+
+    updateSizeInputs();
 }
 
 // deselecting rectangle
@@ -215,12 +362,11 @@ function deselectBox() {
 
 
     selectedBox = null;
+    currentSelectedShape = null;
 }
 
 
-canvas.addEventListener("click", function () {
-    deselectBox();
-});
+
 
 // draggable 
 function makeSelectedDraggable() {
@@ -265,6 +411,14 @@ function makeSelectedDraggable() {
 
             selectedBox.style.left = newLeft + "px";
             selectedBox.style.top = newTop + "px";
+
+            updateStore(selectedBox.dataset.id, {
+                position: {
+                    x: newLeft,
+                    y: newTop
+                }
+            });
+
         }
 
         function stopMove() {
@@ -400,6 +554,9 @@ makeCircle.addEventListener('click', () => {
     newCircle.style.left = randomLeft + "px"
     newCircle.style.top = randomTop + "px"
 
+    newCircle.style.zIndex = getMaxZIndex() + 1;
+
+
     canvas.appendChild(newCircle)
 
     appendLayers("ri-circle-line", "Circle", id)
@@ -407,6 +564,9 @@ makeCircle.addEventListener('click', () => {
     makeCircleSelect(newCircle)
 
     makeSelectedCircleDraggable()
+
+    addToStore(newCircle, "circle");
+
 })
 
 function makeCircleSelect(circle) {
@@ -422,11 +582,14 @@ function selectCircle(circle) {
         selectedCircle.classList.remove('selectedCircle')
     }
     selectedCircle = circle
+    currentSelectedShape = circle;
     circle.classList.add('selectedCircle')
 
     addResizeToSelectedCircle();
 
     selectLayerByShapeId(circle.dataset.id);
+
+    updateSizeInputs();
 }
 
 function deselectCircle() {
@@ -437,11 +600,10 @@ function deselectCircle() {
     document.querySelectorAll(".resize-handle").forEach(h => h.remove());
 
     selectedCircle = null;
+    currentSelectedShape = null;
 }
 
-canvas.addEventListener("click", function () {
-    deselectCircle()
-})
+
 
 function makeSelectedCircleDraggable() {
 
@@ -533,7 +695,7 @@ function addResizeToSelectedCircle() {
 
                 let newSize = startWidth;
 
-                // circle ko perfect round rakhne ke liye
+
                 if (type.includes("r") || type.includes("b")) {
                     newSize = startWidth + Math.max(dx, dy);
                 }
@@ -561,11 +723,11 @@ function addResizeToSelectedCircle() {
     });
 }
 
-document.addEventListener('keydown',(e)=>{
+document.addEventListener('keydown', (e) => {
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
-    if(e.key==="Delete"){
-        if(!selectedCircle) return;
+    if (e.key === "Delete") {
+        if (!selectedCircle) return;
 
         document.querySelectorAll(".resize-handle").forEach(h => h.remove());
 
@@ -605,6 +767,9 @@ makeTriangle.addEventListener('click', function () {
     newTriangle.style.left = randomLeft + "px"
     newTriangle.style.top = randomTop + "px"
 
+    newTriangle.style.zIndex = getMaxZIndex() + 1;
+
+
     canvas.appendChild(newTriangle)
 
     appendLayers("ri-triangle-line", "Triangle", id)
@@ -612,6 +777,9 @@ makeTriangle.addEventListener('click', function () {
     makeTriangleSelect(newTriangle)
 
     makeSelectedTriangleDraggable()
+
+    addToStore(newTriangle, "triangle");
+
 })
 
 
@@ -631,11 +799,14 @@ function selectTriangle(triangle) {
     }
 
     selectedTriangle = triangle;
+    currentSelectedShape = triangle;
     triangle.classList.add('selectedTriangle');
 
     addResizeToSelectedTriangle();
 
     selectLayerByShapeId(triangle.dataset.id);
+
+    updateSizeInputs();
 }
 
 function deselectTriangle() {
@@ -646,13 +817,11 @@ function deselectTriangle() {
     document.querySelectorAll(".resize-handle").forEach(h => h.remove());
 
     selectedTriangle = null;
+    currentSelectedShape = null;
 }
 
 
-canvas.addEventListener("click", function () {
-    deselectTriangle();
-    deselectAllLayers();
-});
+
 
 function makeSelectedTriangleDraggable() {
 
@@ -745,7 +914,7 @@ function addResizeToSelectedTriangle() {
                 let newWidth = startWidth;
                 let newHeight = startHeight;
 
-                // triangle ke liye free resize (perfect square ki condition nahi)
+
                 if (type.includes("r")) newWidth = startWidth + dx;
                 if (type.includes("l")) newWidth = startWidth - dx;
                 if (type.includes("b")) newHeight = startHeight + dy;
@@ -773,11 +942,11 @@ function addResizeToSelectedTriangle() {
 }
 
 
-document.addEventListener('keydown',(e)=>{
+document.addEventListener('keydown', (e) => {
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
-    if(e.key==="Delete"){
-        if(!selectedTriangle) return;
+    if (e.key === "Delete") {
+        if (!selectedTriangle) return;
 
         document.querySelectorAll(".resize-handle").forEach(h => h.remove());
 
@@ -787,3 +956,448 @@ document.addEventListener('keydown',(e)=>{
     }
 });
 
+
+// text 
+
+let addTextBtn = document.querySelector("#addText");
+let textInput = document.querySelector("#textInput");
+let textSize = document.querySelector("#textSize");
+
+addTextBtn.addEventListener("click", () => {
+    let newText = document.createElement("div");
+    newText.classList.add("canvasText");
+    newText.textContent = "Your Text";
+
+    let id = generateID();
+    newText.dataset.id = id;
+    newText.dataset.rotate = 0;
+
+    newText.style.position = "absolute";
+    newText.style.left = "50px";
+    newText.style.top = "50px";
+    newText.style.fontSize = "20px";
+    newText.style.color = "#ffffff";
+    newText.style.cursor = "move";
+
+    newText.style.zIndex = getMaxZIndex() + 1;
+
+
+    canvas.appendChild(newText);
+
+    appendLayers("ri-text", "Text", id);
+
+    makeTextSelectable(newText);
+    makeSelectedTextDraggable();
+
+
+    selectText(newText);
+
+    addToStore(newText, "text");
+
+});
+
+function makeTextSelectable(textEl) {
+    textEl.addEventListener("click", (e) => {
+        e.stopPropagation();
+        selectText(textEl);
+    });
+}
+
+function selectText(textEl) {
+    if (selectedText && selectedText !== textEl) {
+        selectedText.classList.remove("selectedText");
+    }
+
+    selectedText = textEl;
+    currentSelectedShape = textEl;
+
+    textEl.classList.add("selectedText");
+
+    // UI sync
+    textInput.value = textEl.textContent;
+    textColor.value = rgbToHex(getComputedStyle(textEl).color);
+    textSize.value = parseInt(getComputedStyle(textEl).fontSize);
+
+    selectLayerByShapeId(textEl.dataset.id);
+}
+
+function deselectText() {
+    if (!selectedText) return;
+    selectedText.classList.remove("selectedText");
+    selectedText = null;
+}
+
+function makeSelectedTextDraggable() {
+    canvas.addEventListener("mousedown", function (e) {
+        if (!selectedText) return;
+        if (!selectedText.contains(e.target)) return;
+
+        let startX = e.clientX;
+        let startY = e.clientY;
+
+        let startLeft = selectedText.offsetLeft;
+        let startTop = selectedText.offsetTop;
+
+        function moveText(e) {
+            let dx = e.clientX - startX;
+            let dy = e.clientY - startY;
+
+            selectedText.style.left = startLeft + dx + "px";
+            selectedText.style.top = startTop + dy + "px";
+
+            updateStore(selectedText.dataset.id, {
+                position: { x: newLeft, y: newTop }
+            });
+        }
+
+        function stopMove() {
+            document.removeEventListener("mousemove", moveText);
+            document.removeEventListener("mouseup", stopMove);
+        }
+
+        document.addEventListener("mousemove", moveText);
+        document.addEventListener("mouseup", stopMove);
+    });
+}
+
+textInput.addEventListener("input", () => {
+    if (!selectedText) return;
+    selectedText.textContent = textInput.value;
+});
+
+colorPicker.addEventListener("input", () => {
+    if (!selectedText) return;
+    selectedText.style.color = colorPicker.value;
+});
+
+
+textSize.addEventListener("input", () => {
+    if (!selectedText) return;
+    selectedText.style.fontSize = textSize.value + "px";
+});
+
+canvas.addEventListener("click", function () {
+
+    deselectBox();
+    deselectCircle();
+    deselectTriangle();
+    deselectText();
+
+    deselectAllLayers();
+    currentSelectedShape = null;
+
+    document.querySelectorAll(".resize-handle").forEach(h => h.remove());
+});
+
+document.addEventListener("keydown", (e) => {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
+    if (e.key === "Delete") {
+        if (!currentSelectedShape) return;
+
+        document.querySelectorAll(".resize-handle").forEach(h => h.remove());
+
+        deleteShapeAndLayer(currentSelectedShape);
+
+        // reset all selections
+        selectedBox = null;
+        selectedCircle = null;
+        selectedTriangle = null;
+        selectedText = null;
+        currentSelectedShape = null;
+
+        deselectAllLayers();
+    }
+});
+
+
+
+
+// Rotation of shape 
+
+let rotateLeft = document.querySelector("#rotateLeft");
+let rotateRight = document.querySelector("#rotateRight");
+
+const rotateDeg = 10;
+
+function rotateShape(deg) {
+    if (!currentSelectedShape) return;
+
+    let currentRotation = currentSelectedShape.dataset.rotate || 0;
+    currentRotation = parseInt(currentRotation);
+
+    let newRotation = currentRotation + deg;
+
+    currentSelectedShape.style.transform = `rotate(${newRotation}deg)`;
+    currentSelectedShape.dataset.rotate = newRotation;
+}
+
+
+rotateRight.addEventListener("click", () => {
+    rotateShape(rotateDeg);      // clockwise
+});
+
+rotateLeft.addEventListener("click", () => {
+    rotateShape(-rotateDeg);     // anti-clockwise
+});
+
+
+// moving shapes
+
+let moveUp = document.querySelector("#moveUp");
+let moveDown = document.querySelector("#moveDown");
+let moveLeft = document.querySelector("#moveLeft");
+let moveRight = document.querySelector("#moveRight");
+
+const moveStep = 5;
+
+function moveShape(dx, dy) {
+    if (!currentSelectedShape) return;
+
+    let left = currentSelectedShape.offsetLeft;
+    let top = currentSelectedShape.offsetTop;
+
+    let canvasW = canvas.clientWidth;
+    let canvasH = canvas.clientHeight;
+
+    let shapeW = currentSelectedShape.offsetWidth;
+    let shapeH = currentSelectedShape.offsetHeight;
+
+    let newLeft = left + dx;
+    let newTop = top + dy;
+
+    // boundary control
+    if (newLeft < 0) newLeft = 0;
+    if (newTop < 0) newTop = 0;
+
+    if (newLeft > canvasW - shapeW) {
+        newLeft = canvasW - shapeW;
+    }
+
+    if (newTop > canvasH - shapeH) {
+        newTop = canvasH - shapeH;
+    }
+
+    currentSelectedShape.style.left = newLeft + "px";
+    currentSelectedShape.style.top = newTop + "px";
+
+    updateStore(currentSelectedShape.dataset.id, {
+        position: {
+            x: newLeft,
+            y: newTop
+        }
+    });
+
+}
+
+
+moveUp.addEventListener("click", () => {
+    moveShape(0, -moveStep);   // upar
+});
+
+moveDown.addEventListener("click", () => {
+    moveShape(0, moveStep);    // niche
+});
+
+moveLeft.addEventListener("click", () => {
+    moveShape(-moveStep, 0);   // left
+});
+
+moveRight.addEventListener("click", () => {
+    moveShape(moveStep, 0);    // right
+});
+
+document.addEventListener("keydown", (e) => {
+    if (!currentSelectedShape) return;
+
+    // jab user input box me type kar raha ho to move na ho
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
+    switch (e.key) {
+        case "ArrowUp":
+            e.preventDefault();
+            moveShape(0, -moveStep);   // upar
+            break;
+
+        case "ArrowDown":
+            e.preventDefault();
+            moveShape(0, moveStep);    // niche
+            break;
+
+        case "ArrowLeft":
+            e.preventDefault();
+            moveShape(-moveStep, 0);   // left
+            break;
+
+        case "ArrowRight":
+            e.preventDefault();
+            moveShape(moveStep, 0);    // right
+            break;
+    }
+});
+
+
+
+// size of shape 
+
+let widthInput = document.querySelector("#widthInput");
+let heightInput = document.querySelector("#heightInput");
+
+function updateSizeInputs() {
+    if (!currentSelectedShape) return;
+
+    widthInput.value = currentSelectedShape.offsetWidth;
+    heightInput.value = currentSelectedShape.offsetHeight;
+}
+
+
+widthInput.addEventListener("input", () => {
+    if (!currentSelectedShape) return;
+
+    let newWidth = parseInt(widthInput.value);
+    if (newWidth < 20) return;   // minimum size control
+
+    currentSelectedShape.style.width = newWidth + "px";
+
+
+    if (currentSelectedShape.classList.contains("newCircle")) {
+        currentSelectedShape.style.height = newWidth + "px";
+        heightInput.value = newWidth;
+    }
+});
+
+heightInput.addEventListener("input", () => {
+    if (!currentSelectedShape) return;
+
+    let newHeight = parseInt(heightInput.value);
+    if (newHeight < 20) return;
+
+    currentSelectedShape.style.height = newHeight + "px";
+
+
+    if (currentSelectedShape.classList.contains("newCircle")) {
+        currentSelectedShape.style.width = newHeight + "px";
+        widthInput.value = newHeight;
+    }
+});
+
+
+// bring up and down 
+
+let bringForwardBtn = document.querySelector("#bringForward");
+let sendBackwardBtn = document.querySelector("#sendBackward");
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    let bringForwardBtn = document.querySelector("#bringForward");
+    let sendBackwardBtn = document.querySelector("#sendBackward");
+
+    bringForwardBtn.addEventListener("click", () => {
+        if (!currentSelectedShape) return;
+
+        let maxZ = getMaxZIndex();
+        currentSelectedShape.style.zIndex = maxZ + 1;
+    });
+
+    sendBackwardBtn.addEventListener("click", () => {
+        if (!currentSelectedShape) return;
+
+        let currentZ = parseInt(currentSelectedShape.style.zIndex) || 0;
+        if (currentZ <= 0) return;
+
+        currentSelectedShape.style.zIndex = currentZ - 1;
+    });
+});
+
+
+
+let exportJSONBtn = document.querySelector("#exportJSON");
+
+exportJSONBtn.addEventListener("click", () => {
+    const dataStr = JSON.stringify(canvasStore, null, 2);
+
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "canvas-layout.json";
+    a.click();
+
+    URL.revokeObjectURL(url);
+});
+
+
+let exportHTMLBtn = document.querySelector("#exportHTML");
+
+exportHTMLBtn.addEventListener("click", () => {
+    let html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Exported Canvas</title>
+<style>
+body {
+    margin: 0;
+    background: #111;
+}
+.canvas {
+    position: relative;
+    width: ${canvas.clientWidth}px;
+    height: ${canvas.clientHeight}px;
+    background: #000;
+}
+.shape {
+    position: absolute;
+}
+</style>
+</head>
+<body>
+<div class="canvas">
+`;
+
+    canvasStore.forEach(item => {
+        let style = `
+            left:${item.position.x}px;
+            top:${item.position.y}px;
+            width:${item.size.w}px;
+            height:${item.size.h}px;
+            transform: rotate(${item.rotation}deg);
+            z-index:${item.zIndex};
+        `;
+
+        if (item.type === "text") {
+            html += `
+<div class="shape" style="${style};
+    color:${item.styles.color};
+    font-size:${item.styles.fontSize}px;">
+${item.text}
+</div>
+`;
+        } else {
+            html += `
+<div class="shape" style="${style};
+    background:${item.styles.backgroundColor};
+"></div>
+`;
+        }
+    });
+
+    html += `
+</div>
+</body>
+</html>
+`;
+
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "canvas-export.html";
+    a.click();
+
+    URL.revokeObjectURL(url);
+});

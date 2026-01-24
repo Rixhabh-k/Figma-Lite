@@ -11,13 +11,20 @@
 
 <body>
     <div id="main">
+
+
         <div id="layerPanel">
+            <div class="export">
+                <button id="exportJSON">Export JSON</button>
+                <button id="exportHTML">Export HTML</button>
+            </div>
             <div class="layerPanelContainer">
                 <h1>Layers</h1>
+                <hr>
                 <div class="layers">
-                    
+
                 </div>
-                
+
             </div>
         </div>
 
@@ -26,7 +33,53 @@
         </div>
 
         <div id="propPanel">
+            <div class="propPanelContainer">
+                <h1>Properties</h1>
+                <hr>
+                <div class="properties">
+                    <div class="props">
+                        <p>Height</p>
+                        <input type="number" id="heightInput" placeholder="Height">
+                    </div>
+                    <div class="props">
+                        <p>Width</p>
+                        <input type="number" id="widthInput" placeholder="Width">
+                    </div>
+                    <div class="props">
+                        <p>Color</p>
+                        <input id="colorPicker" type="color">
+                    </div>
+                    <div class="props">
+                        <p>Text</p>
+                        <input type="text" id="textInput" placeholder="Edit text here">
+                        <input type="number" id="textSize" placeholder="Font size">
+                    </div>
 
+                    <div class="shapeMove">
+                        <p>Move</p>
+                        <button id="moveUp"><i class="ri-arrow-up-s-line"></i></button>
+                        <div class="centerButtons">
+                            <button id="moveLeft"><i class="ri-arrow-left-s-line"></i></button>
+                            <button id="moveRight"><i class="ri-arrow-right-s-line"></i></button>
+                        </div>
+                        <button id="moveDown"><i class="ri-arrow-down-s-line"></i></button>
+                    </div>
+                    <div class="rotateShape">
+                        <p>Rotate</p>
+                        <div class="rotateButtons">
+                            <button id="rotateLeft"><i class="ri-reset-left-line"></i></button>
+                            <button id="rotateRight"><i class="ri-reset-right-line"></i></button>
+                        </div>
+                    </div>
+                    <div class="rotateShape">
+                        <p>Bring Up/Down</p>
+                        <div class="rotateButtons">
+                            <button id="bringForward"><i class="ri-arrow-up-long-line"></i></button>
+                            <button id="sendBackward"><i class="ri-arrow-down-long-line"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="panel">
@@ -35,9 +88,9 @@
                 <button id="makeRectangle"><i class="ri-rectangle-line"></i></button>
                 <button id="makeCircle"><i class="ri-circle-line"></i></button>
                 <button id="makeTriangle"><i class="ri-triangle-line"></i></button>
-                <button id="draw"><i class="ri-text"></i></button>
+                <button id="addText"><i class="ri-text"></i></button>
 
-                <input type="color" id="colorPicker">
+                <!-- <input type="color" id="colorPicker"> -->
 
             </div>
         </div>
